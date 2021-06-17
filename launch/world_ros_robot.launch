@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+
+  <arg name="world" default="empty"/> 
+  <arg name="paused" default="false"/>
+  <arg name="use_sim_time" default="true"/>
+  <arg name="gui" default="true"/>
+  <arg name="headless" default="false"/>
+  <arg name="debug" default="false"/>
+  
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <!--arg name="world_name" value="$(find macau)/worlds/macau.world"/-->
+    <arg name="paused" value="$(arg paused)"/>
+    <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="headless" value="$(arg headless)"/>
+    <arg name="debug" value="$(arg debug)"/>
+  </include>
+
+  <param name="robot_description" command="$(find xacro)/xacro '$(find ros_robot)/urdf/gazebo_ros_robot.urdf.xacro'" />
+  
+  <node name="ros_robot_spawn" pkg="gazebo_ros" type="spawn_model" output="screen"
+   args="-x 0 -y 0 -unpause -urdf -param robot_description -model ros_robot" />
+
+  <rosparam file="$(find ros_robot)/config/control.yaml" command="load"/>
+  
+  <!-- load the controllers -->
+  <node name="robot_arm_controller_spawner" pkg="controller_manager" type="spawner" respawn="true" output="screen" args="/ros_robot_joint_publisher /ros_robot_velocity_controller"/>
+  
+  <!-- convert joint states to TF transforms for rviz, etc -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="false" output="screen"/>
+
+    <!-- Starting Joint state publisher node which will publish the joint values   -->
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+    
+</launch>
