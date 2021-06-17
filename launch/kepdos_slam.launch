@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- Arguments -->
+  <!--arg name="model" default="$(env TURTLEBOT3_MODEL)" doc="model type [burger, waffle, waffle_pi]"/-->
+  <!--arg name="configuration_basename" default="turtlebot3_lds_2d.lua"/-->
+  <param name="robot_description" command="$(find xacro)/xacro.py '$(find robot_description)/urdf/ros_robot.xacro'"/>
+  <arg name="set_base_frame" default="base_link"/>
+  <arg name="set_odom_frame" default="odom"/>
+  <arg name="set_map_frame"  default="map"/>
+   <arg name="scan_topic"  default="/scan" />
+
+  <!-- Gmapping -->
+  <node pkg="gmapping" type="slam_gmapping" name="kepdos_slam_gmapping" output="screen">
+    <param name="base_frame" value="$(arg set_base_frame)"/>
+    <param name="odom_frame" value="$(arg set_odom_frame)"/>
+    <param name="map_frame"  value="$(arg set_map_frame)"/>
+    <remap from="scan" to="$(arg scan_topic)"/>
+    <rosparam command="load" file="$(find kepdos_slam)/config/gmapping_params.yaml" />
+  </node>
+  <node pkg="rviz" type="rviz" name="rviz">
+  </node>
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+        <param name="/use_gui" value="False"/>
+      </node>
+<node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" >
+</node>
+<node pkg="amcl" type="amcl" name="amcl">
+  </node>
+<node pkg="fake_localization" type="fake_localization" name="fake_localization">
+  </node>
+<node pkg="robot_pose_ekf" type="robot_pose_ekf" name="robot_pose_ekf">
+    <param name="output_frame" value="odom"/>
+    <param name="freq" value="30.0"/>
+    <param name="sensor_timeout" value="1.0"/>
+    <param name="odom_used" value="true"/>
+    <param name="imu_used" value="true"/>
+    <param name="vo_used" value="true"/>
+    <param name="debug" value="false"/>
+    <param name="self_diagnose" value="false"/>
+  </node>
+</launch>
